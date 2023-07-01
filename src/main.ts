@@ -4,7 +4,6 @@ import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as cookieParser from 'cookie-parser'
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
-import { JWT_COOKIE_NAME } from 'src/core/guards/jwt.guard'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -19,7 +18,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle(process.env.npm_package_name)
     .setVersion(process.env.npm_package_version)
-    .addCookieAuth(JWT_COOKIE_NAME)
+    .addBearerAuth()
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
