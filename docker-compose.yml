@@ -1,23 +1,13 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  passwordless:
-    image: extropysk/passwordless:latest
+  template:
+    image: template
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     ports:
       - 3000:3000
     env_file:
       - .env
     restart: unless-stopped
-    depends_on:
-      - redis
-    networks:
-      - default
-
-  redis:
-    image: redis:6.2-alpine
-    restart: unless-stopped
-    ports:
-      - 6379:6379
-    command: redis-server --requirepass ""
-    networks:
-      - default
