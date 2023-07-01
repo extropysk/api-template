@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as cookieParser from 'cookie-parser'
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { JWT_COOKIE_NAME } from 'src/core/guards/jwt.guard'
 import { AppModule } from './app.module'
 
@@ -13,6 +14,7 @@ async function bootstrap() {
   app.enableCors({ credentials: true, origin: true })
   app.use(cookieParser())
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }))
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
 
   const config = new DocumentBuilder()
     .setTitle(process.env.npm_package_name)
