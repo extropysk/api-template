@@ -1,14 +1,14 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Current } from 'src/core/decorators/current.decorator'
-import { Jwt } from 'src/core/decorators/jwt.decorator'
+import { Auth } from 'src/core/decorators/auth.decorator'
 import { PayloadDto } from 'src/core/dto/payload.dto'
 import { Payload } from 'src/core/interfaces/payload.interface'
 import { UsersService } from 'src/users/users.service'
 
 @ApiTags('users')
 @Controller('users')
-@Jwt()
+@Auth()
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
