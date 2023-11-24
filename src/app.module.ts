@@ -1,47 +1,54 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
-import { WinstonModule, utilities as nestWinstonModuleUtilities } from 'nest-winston'
+import { LoggerModule } from 'nestjs-pino'
+import loki from 'pino-loki'
+import pretty from 'pino-pretty'
 import { UsersModule } from 'src/users/users.module'
-import * as winston from 'winston'
-import LokiTransport from 'winston-loki'
+
+const buildStream = (config: ConfigService) => {
+  const host = config.get<string>('LOKI_HOST')
+  const credentials = config.get<string>('LOKI_CREDENTIALS')?.split(':')
+
+  if (host && credentials?.length === 2) {
+    return loki({
+      batching: true,
+      interval: 5,
+
+      host: process.env.LOKI_HOST,
+      labels: {
+        app: 'template',
+        version: config.get<string>('NODE_ENV'),
+        env: config.get<string>('NODE_ENV', 'development'),
+      },
+      basicAuth: {
+        username: credentials[0],
+        password: credentials[1],
+      },
+    })
+  }
+
+  return pretty({
+    colorize: true,
+  })
+}
 
 @Module({
   imports: [
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({ global: true }),
-    WinstonModule.forRootAsync({
-      useFactory: (configService: ConfigService) => {
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => {
         return {
-          level: 'info',
-          transports: [
-            new winston.transports.Console({
-              format: winston.format.combine(
-                winston.format.timestamp(),
-                winston.format.ms(),
-                nestWinstonModuleUtilities.format.nestLike(process.env.npm_package_name, {
-                  colors: true,
-                  prettyPrint: true,
-                })
-              ),
-            }),
-            new LokiTransport({
-              level: 'error',
-              format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-              host: configService.get<string>('LOKI_HOST'),
-              json: true,
-              basicAuth: configService.get<string>('LOKI_CREDENTIALS'),
-              labels: {
-                app_name: process.env.npm_package_name,
-                app_version: process.env.npm_package_version,
-                app_environment: configService.get<string>('NODE_ENV', 'development'),
-              },
-            }),
-          ],
+          pinoHttp: {
+            level: 'info',
+            autoLogging: false,
+            stream: buildStream(config),
+          },
         }
       },
-      inject: [ConfigService],
     }),
   ],
 })
