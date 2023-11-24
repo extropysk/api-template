@@ -17,7 +17,7 @@ const buildStream = (config: ConfigService) => {
 
       host: process.env.LOKI_HOST,
       labels: {
-        app: 'template',
+        app: config.get<string>('APP_NAME', 'api'),
         version: config.get<string>('VERSION'),
         env: config.get<string>('NODE_ENV', 'development'),
       },
